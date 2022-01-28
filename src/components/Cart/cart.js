@@ -24,27 +24,22 @@ const Cart = () => {
             ) : (
                 <>
                     {cart?.map((prod) => (
-                        <div key={prod.id} className="containerCart">
-                            <img src={prod.foto} alt={prod.nombre} />
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    width: '300px',
-                                }}
-                            >
-                                <h3>{prod.nombre}</h3>
-                                <h3>${prod.precio}</h3>
-                                <h3>Cantidad: {prod.cantidad}</h3>
+                        <div key={prod.id} className="fluid-container">
+                            <img src={prod.foto} alt={prod.nombre} style={{ maxWidth: '12rem' }} />
+                            <div>
+                                <h6>{prod.nombre}</h6>
+                                <h6>${prod.precio}</h6>
+                                <h6>Cantidad: {prod.cantidad}</h6>
+                                <div>
                                 <button onClick={() => deleteProd(prod.id)}>
                                     X
                                 </button>
+                                </div>
                             </div>
                         </div>
                     ))}
                     <button onClick={vaciarCarrito}>Vaciar Carrito</button>
-                    <h3>{total()}</h3>
+                    <h6>Total: ${total()}</h6>
                 </>
             )}
         </>
