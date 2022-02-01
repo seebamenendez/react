@@ -1,49 +1,122 @@
-import React, { useContext} from 'react';
-import { CartContext } from '../CartContext/CartContext';
-import { Link } from 'react-router-dom';
+import { CartContext } from "../CartContext/CartContext"
+import { addDoc, collection, doc, documentId, getDocs, getFirestore, query, updateDoc, where, writeBatch } from "firebase/firestore"
+import { useState } from "react"
+import Resumen from "../Resumen/Resumen"
+
 
 const Cart = () => {
-    const {cart, deleteProd, vaciarCarrito, total} = useContext(CartContext);
+    const { cartList, vaciarCarrito, precioTotal } = CartContext ()
+    const [condicional, setCondicional] = useState(false);
+    const [dataForm , setDataForm ] = useState({
+        email: '',
+        name: '',
+        phone: ''
+    });
+    const [idOrden, setIdOrden] = useState('');
+
+    const realizarCompra = async (e) => {
+        e.preventDefault()   
+         // Nuevo objeto de orders    
+        let orden = {}
+        //orden.date = Timestamp.fromDate(new Date())        
+
+        orden.buyer = dataForm // {name, email, phone}
+        orden.total = precioTotal();
+
+        orden.items = cartList.map(cartItem => {
+            const id = cartItem.id;
+            const nombre = cartItem.nombre;
+            const precio = cartItem.precio * cartItem.cantidad;
+            const cantidad = cartItem.cantidad
+            
+            return {id, nombre, precio, cantidad}   
+        }) 
+
+        // guardar la orden en firestore
+        const db = getFirestore()
+
+        const ordenCollection = collection(db, 'items')
+        await addDoc(ordenCollection, orden) // setDoc
+        .then(resp => setIdOrden(resp.id))
+        .catch(err => console.log(err))
+        
+
+        // actualizar stock
+        const queryCollection = collection(db, 'items')
+
+        //console.log(cleccionNoti)
+        const queryActualizarStock = query(
+            queryCollection, 
+            where( documentId() , 'in', cartList.map(it => it.id))          
+        ) 
+
+        const batch = writeBatch(db)       
+        
+        await getDocs(queryActualizarStock)
+        .then(resp => resp.docs.forEach(res => batch.update(res.ref, {
+                stock: res.data().stock - cartList.find(item => item.id === res.id).cantidad
+            }) 
+        ))
+        .catch(err => console.log(err))
+        .finally(()=> console.log('stock actualizado'))
+
+        batch.commit()
+        setCondicional(true)    
+    }
+
+    function handleChange(e) {
+        // console.log(e.target.name)
+        // console.log(e.target.value)
+        setDataForm({
+            ...dataForm,
+            [e.target.name]: e.target.value
+        })
+    }
+    console.log(dataForm)
+    
     return (
-        <>
-            {cart.length === 0 ? (
-                <div
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        minHeight: '70vh',
-                    }}
-                >
-                    <h2>Aún no agregaste productos al carrito</h2>
-                    <Link to="/">
-                        <button className="detail">Ir al catálogo</button>
-                    </Link>
-                </div>
-            ) : (
-                <>
-                    {cart?.map((prod) => (
-                        <div key={prod.id} className="fluid-container">
-                            <img src={prod.foto} alt={prod.nombre} style={{ maxWidth: '12rem' }} />
-                            <div>
-                                <h6>{prod.nombre}</h6>
-                                <h6>${prod.precio}</h6>
-                                <h6>Cantidad: {prod.cantidad}</h6>
-                                <div>
-                                <button onClick={() => deleteProd(prod.id)}>
-                                    X
-                                </button>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                    <button onClick={vaciarCarrito}>Vaciar Carrito</button>
-                    <h6>Total: ${total()}</h6>
-                </>
-            )}
-        </>
-    );
-};
+        <div>  
+            {
+                condicional  ? 
+                    <Resumen idOrden={idOrden} />
+                : 
+                    <>
+                        {cartList.map(prod => <li key={prod.id}>{prod.title} - cant: {prod.cantidad}</li>)}
+                        <button onClick={vaciarCarrito}>Vaciar CArrito</button>
+                        <form 
+                            onSubmit={realizarCompra} 
+                            //onChange={handleChange} 
+                        >
+                            <input 
+                                type='text' 
+                                name='name' 
+                                placeholder='name' 
+                                onChange={handleChange}
+                                value={dataForm.name}
+                            /><br />
+                            <input 
+                                type='text' 
+                                name='phone'
+                                placeholder='tel' 
+                                onChange={handleChange}
+                                value={dataForm.phone}
+                            /><br/>
+                            <input 
+                                type='email' 
+                                name='email'
+                                placeholder='email' 
+                                onChange={handleChange}
+                                value={dataForm.email}
+                            /><br/>
+                            <button>Generar Orden</button>
+                        </form>
+                        {/* <button onClick={realizarCompra}>Generar Orden</button> */}
+                    </>
+
+            }          
+        </div>
+    )
+}
 
 export default Cart
+

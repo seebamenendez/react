@@ -11,19 +11,18 @@ const ItemDetailContainer = () => {
 
     useEffect(() => {
         const db = getFirestore();
-        const queryProd = doc(db, 'products', id);
-        getDoc(queryProd).then((resp) => {
-            setProduct({ id: resp.id, ...resp.data() });
-        });
-        setLoading(false);
+        const queryProd = doc(db, 'products', detalleId);
+        getDoc(queryProd)
+        .then(resp => setProduct( {id: resp.id, ...resp.data()} ))
+    }, [])
 
-    }, [detalleId])
     
 
     return (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-           <ItemDetail product={product} />
+        <div>
+            <ItemDetail producto={product} />
         </div>
+
     )
 }
 
