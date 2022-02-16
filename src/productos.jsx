@@ -8,6 +8,7 @@ import galope from './multimedia/newIn/IMG_008.JPG'
 import orion from './multimedia/newIn/IMG_009.JPG'
 import origen from './multimedia/newIn/IMG_002.JPG'
 
+
 export const productos = [
     {
         precio: 2690,

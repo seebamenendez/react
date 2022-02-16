@@ -6,23 +6,23 @@ import ItemDetail from './ItemDetail/ItemDetail'
 
 const ItemDetailContainer = () => {
     const [product, setProduct] = useState({})
-
+    const [loading, setLoading] = useState(true);
     const { detalleId } = useParams()
 
     useEffect(() => {
         const db = getFirestore();
-        const queryProd = doc(db, 'products', detalleId);
-        getDoc(queryProd)
-        .then(resp => setProduct( {id: resp.id, ...resp.data()} ))
-    }, [])
-
-    
+        const queryProd = doc(db, 'items', detalleId);
+        getDoc(queryProd).then((resp) => {
+            setProduct({ id: resp.id, ...resp.data() });
+        });
+        setLoading(false);
+    }, [detalleId]);
+   
 
     return (
         <div>
-            <ItemDetail producto={product} />
+            {loading ? <h3>Loading...</h3> : <ItemDetail producto={product} />}
         </div>
-
     )
 }
 

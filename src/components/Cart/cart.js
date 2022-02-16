@@ -1,16 +1,17 @@
-import { CartContext } from "../CartContext/CartContext"
+import { useCartContext } from "../CartContext/CartContext"
 import { addDoc, collection, doc, documentId, getDocs, getFirestore, query, updateDoc, where, writeBatch } from "firebase/firestore"
 import { useState } from "react"
-import Resumen from "../Resumen/Resumen"
+import { Link } from 'react-router-dom';
+import FinalizarCompra from "../FinalizarCompra/FinalizarCompra";
 
 
 const Cart = () => {
-    const { cartList, vaciarCarrito, precioTotal } = CartContext ()
+    const { cartList, vaciarCarrito, precioTotal, FinalizarCompra } = useCartContext ()
     const [condicional, setCondicional] = useState(false);
     const [dataForm , setDataForm ] = useState({
         email: '',
-        name: '',
-        phone: ''
+        nombre: '',
+        telefono: ''
     });
     const [idOrden, setIdOrden] = useState('');
 
@@ -75,48 +76,65 @@ const Cart = () => {
     console.log(dataForm)
     
     return (
-        <div>  
-            {
-                condicional  ? 
-                    <Resumen idOrden={idOrden} />
-                : 
-                    <>
-                        {cartList.map(prod => <li key={prod.id}>{prod.title} - cant: {prod.cantidad}</li>)}
-                        <button onClick={vaciarCarrito}>Vaciar CArrito</button>
-                        <form 
-                            onSubmit={realizarCompra} 
-                            //onChange={handleChange} 
-                        >
-                            <input 
-                                type='text' 
-                                name='name' 
-                                placeholder='name' 
-                                onChange={handleChange}
-                                value={dataForm.name}
-                            /><br />
-                            <input 
-                                type='text' 
-                                name='phone'
-                                placeholder='tel' 
-                                onChange={handleChange}
-                                value={dataForm.phone}
-                            /><br/>
-                            <input 
-                                type='email' 
-                                name='email'
-                                placeholder='email' 
-                                onChange={handleChange}
-                                value={dataForm.email}
-                            /><br/>
-                            <button>Generar Orden</button>
-                        </form>
-                        {/* <button onClick={realizarCompra}>Generar Orden</button> */}
-                    </>
-
-            }          
-        </div>
-    )
+    
+    <>
+        {cartList.length === 0 ? (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              minHeight: "30vh",
+            }}
+          >
+            <h2>Aún no agregaste productos al carrito</h2>
+            <Link to="/">
+              <button className="detail">Ir al catálogo</button>
+            </Link>
+          </div>
+        ) : (
+          <>
+            {cartList?.map((prod) => (
+              <div key={prod.id} className="border border-secondary">
+                <img
+                  src={prod.img}
+                  alt={prod.nombre}
+                  style={{ width: "220px", margin: "5px" }}
+                />
+                <div
+                  style={{
+                    textAlign: "center",
+                  }}
+                >
+                  <h6>{prod.nombre}</h6>
+                  <h6>${prod.precio} C/U</h6>
+                  <h6>Cantidad: {prod.cantidad}</h6>
+                  <button onClick={() => vaciarCarrito(prod.id)}>X</button>
+                </div>
+              </div>
+            ))}
+            <button onClick={vaciarCarrito}>Vaciar Carrito</button>
+            <div style={{
+                  textAlign: "right",
+                  margin: "4px 25px",
+                }}>
+              <h3>
+                El total es: ${precioTotal()}
+              </h3>
+                <Link to={`/finalizarcompra`}>                                         
+                    <button>Finalizar Compra</button> 
+                </Link>
+            </div>
+          </>
+        )}
+      </>
+      
+    );
 }
 
+
 export default Cart
+
+
 

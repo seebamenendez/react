@@ -1,41 +1,43 @@
-import { React, useContext, useState } from "react";
+import { React, useState } from "react";
 import { Card } from "react-bootstrap";
 //import { Link } from "react-router-dom";
 import ItemCount from "../../ItemCount/ItemCount";
-import FinalizarCompra from "../../FinalizarCompra/FinalizarCompra";
-import { CartContext } from "../../CartContext/CartContext";
+import RealizarCompra from "../../RealizarCompra/RealizarCompra";
+import { useCartContext } from "../../CartContext/CartContext";
 
-const ItemDetail = ({ product }) => {
-  const [show, setShow] = useState(true);
-  const {agregarAlCarrito} =useContext(CartContext)
 
-  const { foto, nombre, precio, coleccion, stock } = product;
+const ItemDetail = ({producto}) => {
 
-  const onAdd = (count) => {
-    agregarAlCarrito(product, count)
+  const [show, setShow] = useState(true)
+  const {agregarAlCarrito} = useCartContext()
+  
+  const onAdd = (cant) => {
+    agregarAlCarrito({...producto, cantidad: cant});
     setShow(false);
-  };
+};
 
   return (
+    <>
     <div>
-      <Card style={{ width: "18rem", margin: "20px" }}>
-        <Card.Img variant="top" src={foto} style={{ minHeight: "300px" }} />
-        <Card.Body>
-          <Card.Title>{nombre}</Card.Title>
-          <Card.Text>Colección: {coleccion}</Card.Text>
-          <Card.Text>$ {precio}</Card.Text>
-        </Card.Body>
-      </Card>
-
-      {show ? (
-        <ItemCount stock={stock} onAdd={onAdd} />
+      <Card style={{ width: "18rem", margin: "10px" }}>
+        
+        <Card.Body className="card-header">
+          <Card.Title>{producto.nombre}</Card.Title>
+          <Card.Img variant="top" src={producto.img} style={{ minHeight: "300px" }} />
+          <Card.Text>Colección: {producto.categoria}</Card.Text>
+          <Card.Text>$ {producto.precio}</Card.Text>
+          
+          {show ? (
+        <ItemCount stock={producto.stock} onAdd={onAdd} />
       ) : (
         <div>
-          <FinalizarCompra />
-          
+          <RealizarCompra />
         </div>
       )}
+        </Card.Body>
+      </Card>
     </div>
+    </>
   );
 };
 
